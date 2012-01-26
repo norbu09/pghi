@@ -1,8 +1,11 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
-use 5.10.0;
+use strict;
+use warnings;
 use Net::GitHub;
 use Data::Dumper;
+
+our $VERSION = '0.1';
 
 my $tag = shift || 'critical';
 
@@ -10,6 +13,7 @@ my $github = login();
 my $issues =
   $github->issue->repos_issues( 'ideegeo', 'iwmn-base',
     { labels => $tag, state => 'open', sort => 'updated_at' } );
+
 print "## open issues [$tag] ##\n\n";
 foreach my $issue (@{$issues}){
     print $issue->{title} ."\n";
@@ -26,16 +30,14 @@ sub login {
     my $pass = `git config --global github.pass`;
     chomp($login);
     chomp($pass);
-    unless ( $login and $pass ) {
-        print "run git config --global github.user|pass fails";
-        return;
-    }
-    my $gh = Net::GitHub->new(
+
+    die "run git config --global github.user|pass fails" unless ($login and $pass);
+
+    return Net::GitHub->new(
         login => $login,
         pass  => $pass,
         #access_token => '31359f2ae3804e5afdcf7fc34e2089fc',
         version => 3,
     );
-    return $gh;
 }
 
